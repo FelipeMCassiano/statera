@@ -1,0 +1,5 @@
+[statera]
+port = "2207"
+
+[servers]
+ports = ["8080", "8081"]

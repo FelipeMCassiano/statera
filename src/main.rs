@@ -7,14 +7,11 @@ use configs::load_config;
 use core::sync::atomic::AtomicUsize;
 use hyper_util::client::legacy::Client;
 use hyper_util::rt::TokioExecutor;
-use log::info;
 use proxy::{balancer, AppState};
 use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-    env_logger::init();
-
     let configs = load_config().await;
 
     let port = format!("0.0.0.0:{}", configs.statera.port);

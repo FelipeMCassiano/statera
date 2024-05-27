@@ -1,69 +1,43 @@
-use std::{
-    str::FromStr,
-    sync::{
-        atomic::{AtomicUsize, Ordering::Relaxed},
-        Arc,
-    },
-};
+pub(crate) mod configs;
+mod proxy;
 
-use axum::{
-    body::Body,
-    extract::{Request, State},
-    handler::Handler,
-    http::{
-        uri::{Authority, Scheme},
-        StatusCode, Uri,
-    },
-    response::IntoResponse,
-};
-use hyper_util::{
-    client::legacy::{connect::HttpConnector, Client},
-    rt::TokioExecutor,
-};
-
-#[derive(Clone)]
-struct AppState {
-    addrs: Vec<&'static str>,
-    req_counter: Arc<AtomicUsize>,
-    http_client: Client<HttpConnector, Body>,
-}
+use axum::body::Body;
+use axum::handler::Handler;
+use configs::load_config;
+use core::sync::atomic::AtomicUsize;
+use hyper_util::client::legacy::Client;
+use hyper_util::rt::TokioExecutor;
+use log::info;
+use proxy::{balancer, AppState};
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:2207").await.unwrap();
+    env_logger::init();
 
-    let addrs = ["0.0.0.0:8080", "0.0.0.0:8081"];
+    let configs = load_config().await;
+
+    let port = format!("0.0.0.0:{}", configs.statera.port);
+
+    let server_ports: Vec<String> = {
+        configs
+            .servers
+            .ports
+            .to_vec()
+            .iter()
+            .map(|p| format!("0.0.0.0:{}", p))
+            .collect()
+    };
+    let listener = tokio::net::TcpListener::bind(&port).await.unwrap();
 
     let client = Client::builder(TokioExecutor::new()).build_http::<Body>();
     let app_state = AppState {
-        addrs: addrs.to_vec(),
+        addrs: server_ports.clone(),
         req_counter: Arc::new(AtomicUsize::new(0)),
         http_client: client,
     };
 
-    let app = proxy.with_state(app_state);
+    let app = balancer.with_state(app_state);
 
     axum::serve(listener, app).await.unwrap();
-}
-
-async fn proxy(
-    State(AppState {
-        addrs,
-        req_counter,
-        http_client,
-    }): State<AppState>,
-    mut req: Request,
-) -> impl IntoResponse {
-    let count = req_counter.fetch_add(1, Relaxed);
-    *req.uri_mut() = {
-        let uri = req.uri();
-        let mut parts = uri.clone().into_parts();
-        parts.authority = Authority::from_str(addrs[count % addrs.len()]).ok();
-        parts.scheme = Some(Scheme::HTTP);
-        Uri::from_parts(parts).unwrap()
-    };
-    match http_client.request(req).await {
-        Ok(res) => Ok(res),
-        Err(_) => Err(StatusCode::BAD_GATEWAY),
-    }
 }

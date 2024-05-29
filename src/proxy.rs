@@ -33,10 +33,12 @@ pub async fn balancer(
     mut req: Request,
 ) -> impl IntoResponse {
     let count = req_counter.fetch_add(1, Relaxed);
+    let targets_addr = &addrs[count % addrs.len()];
+
     *req.uri_mut() = {
         let uri = req.uri();
         let mut parts = uri.clone().into_parts();
-        parts.authority = Authority::from_str(&addrs[count % addrs.len()]).ok();
+        parts.authority = Authority::from_str(targets_addr).ok();
         parts.scheme = Some(Scheme::HTTP);
         Uri::from_parts(parts).unwrap()
     };

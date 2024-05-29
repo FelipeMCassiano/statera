@@ -1,4 +1,5 @@
 pub(crate) mod configs;
+mod health_check;
 mod proxy;
 
 use axum::body::Body;
@@ -14,27 +15,30 @@ use std::sync::Arc;
 async fn main() {
     let configs = load_config().await;
 
-    let port = format!("0.0.0.0:{}", configs.statera.port);
+    let port = format!("0.0.0.0:{}", configs.port);
+    println!("{}", port);
 
-    let server_ports: Vec<String> = {
-        configs
-            .servers
-            .ports
-            .to_vec()
-            .iter()
-            .map(|p| format!("0.0.0.0:{}", p))
-            .collect()
-    };
+    let mut servers_ports: Vec<String> = Vec::new();
+    for servers in &configs.servers {
+        servers_ports.push(format!("0.0.0.0:{}", servers.port));
+    }
+
+    println!("{:?}", servers_ports);
     let listener = tokio::net::TcpListener::bind(&port).await.unwrap();
 
     let client = Client::builder(TokioExecutor::new()).build_http::<Body>();
+
     let app_state = AppState {
-        addrs: server_ports.clone(),
+        addrs: servers_ports,
         req_counter: Arc::new(AtomicUsize::new(0)),
-        http_client: client,
+        http_client: client.clone(),
     };
 
     let app = balancer.with_state(app_state);
+
+    health_check::run_health_check(configs.health_check, configs.servers, client)
+        .await
+        .unwrap();
 
     axum::serve(listener, app).await.unwrap();
 }

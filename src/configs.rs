@@ -4,17 +4,22 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Config {
-    pub statera: Statera,
-    pub servers: Servers,
+    pub port: String,
+    pub health_check: HealthCheck,
+    pub servers: Vec<Server>,
 }
 
 #[derive(Deserialize)]
-pub struct Statera {
+pub struct Server {
+    pub name: String,
+    pub host: String,
     pub port: String,
 }
+
 #[derive(Deserialize)]
-pub struct Servers {
-    pub ports: Vec<String>,
+pub struct HealthCheck {
+    pub interval: u64,
+    pub endpoint: String,
 }
 
 pub async fn load_config() -> Config {

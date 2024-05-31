@@ -42,7 +42,6 @@ pub async fn balancer(
         parts.scheme = Some(Scheme::HTTP);
         Uri::from_parts(parts).unwrap()
     };
-    println!("{:?}", dbg!(&req));
 
     match http_client.request(req).await {
         Ok(res) => Ok(res),

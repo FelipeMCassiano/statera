@@ -1,12 +1,12 @@
 port = "9999"
 
 [[servers]]
-name = "api1"
-host = "localhost"
+name = "api01"
+host = "api01"
 port = "3000"
 
 [[servers]]
-name = "api2"
-host = "localhost"
-port = "3000"
+name = "api02"
+host = "api02"
+port = "3001"
 

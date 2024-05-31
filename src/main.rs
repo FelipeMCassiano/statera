@@ -19,7 +19,7 @@ async fn main() {
 
     let mut servers_ports: Vec<String> = Vec::new();
     for servers in &configs.servers {
-        servers_ports.push(format!("0.0.0.0:{}", servers.port));
+        servers_ports.push(format!("{}:{}", servers.host, servers.port));
     }
 
     let listener = tokio::net::TcpListener::bind(&port).await.unwrap();

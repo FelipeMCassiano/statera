@@ -1,4 +1,6 @@
 /target
 docker-compose.yaml
+docker-compose.yml
+statera.toml
 init.sql
 postgresql.conf

@@ -16,14 +16,12 @@ async fn main() {
     let configs = load_config().await;
 
     let port = format!("0.0.0.0:{}", configs.port);
-    println!("{}", port);
 
     let mut servers_ports: Vec<String> = Vec::new();
     for servers in &configs.servers {
         servers_ports.push(format!("0.0.0.0:{}", servers.port));
     }
 
-    println!("{:?}", servers_ports);
     let listener = tokio::net::TcpListener::bind(&port).await.unwrap();
 
     let client = Client::builder(TokioExecutor::new()).build_http::<Body>();
@@ -36,9 +34,11 @@ async fn main() {
 
     let app = balancer.with_state(app_state);
 
-    health_check::run_health_check(configs.health_check, configs.servers, client)
-        .await
-        .unwrap();
+    if let Some(health_check) = configs.health_check {
+        health_check::run_health_check(health_check, configs.servers, client)
+            .await
+            .unwrap();
+    }
 
     axum::serve(listener, app).await.unwrap();
 }

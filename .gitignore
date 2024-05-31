@@ -1,2 +1,4 @@
 /target
 docker-compose.yaml
+init.sql
+postgresql.conf

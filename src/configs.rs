@@ -5,7 +5,7 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct Config {
     pub port: String,
-    pub health_check: HealthCheck,
+    pub health_check: Option<HealthCheck>,
     pub servers: Vec<Server>,
 }
 
@@ -16,7 +16,7 @@ pub struct Server {
     pub port: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct HealthCheck {
     pub interval: u64,
     pub endpoint: String,

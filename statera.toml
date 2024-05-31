@@ -1,20 +1,12 @@
-port = "2207"
-
-[health_check]
-interval = 1
-endpoint = "/hello"
-
+port = "9999"
 
 [[servers]]
 name = "api1"
 host = "localhost"
-port = "8080"
-
+port = "3000"
 
 [[servers]]
 name = "api2"
 host = "localhost"
-port = "8081"
-
-
+port = "3000"
 

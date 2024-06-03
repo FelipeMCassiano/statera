@@ -1,4 +1,4 @@
-div align='center'>
+<div align='center'>
   <h1>⚖️Statera⚖️</h1>
   <p>Statea is a high-performance load balancer written in Rust 🦀.</p>
   <img src='https://img.shields.io/github/languages/top/FelipeMCassiano/statera' alt='GitHub top language' />
@@ -11,6 +11,34 @@ div align='center'>
 - **TOML Configuration**: Easy-to-use and human-readable configuration files 📄.
 - **High Performance**: Built with Rust for safety and speed 🚀.
 - **Scalability**: Effortlessly scales with your growing traffic needs 📈.
+
+## ⚙️ Configuration
+⚠️ The statera configuration file name is strictly determined to `statera.toml`.
+
+Below is the structure of the configuration file you’ll need to set up:
+
+```toml
+# Defines the Statera port
+port = 9999
+
+# Server configurations
+[[servers]]
+name = "api 1"
+host = "localhost"
+port = "8080"
+
+[[servers]]
+name = "api 2"
+host = "localhost"
+port = "8081"
+
+# Health check settings (Optional)
+[health_check]
+interval = 10 # Interval for health check (in seconds)
+endpoint = "/health"
+max_failures = 2 
+
+```
 
 ## 🐳 How to Use with Docker Compose
 To run Statera using Docker Compose, you can use the following configuration in your `docker-compose.yml` file:
@@ -27,5 +55,5 @@ services:
 ...
 ```
 
-##📜 License
-Distributed under the MIT License. See [LICENSE](LICENSE for more information.
+## 📜 License
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.

@@ -35,9 +35,11 @@ async fn main() {
     let app = balancer.with_state(app_state);
 
     if let Some(health_check) = configs.health_check {
-        health_check::run_health_check(health_check, configs.servers, client)
-            .await
-            .unwrap();
+        if let Err(e) = health_check::run_health_check(health_check, configs.servers, client).await
+        {
+            eprintln!("{}", e);
+            return;
+        }
     }
 
     axum::serve(listener, app).await.unwrap();

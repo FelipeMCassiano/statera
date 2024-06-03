@@ -20,6 +20,7 @@ pub struct Server {
 pub struct HealthCheck {
     pub interval: u64,
     pub endpoint: String,
+    pub max_failures: Option<u16>,
 }
 
 pub async fn load_config() -> Config {

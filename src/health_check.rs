@@ -24,11 +24,18 @@ async fn health_check(
 }
 
 pub async fn run_health_check(
-    HealthCheck { interval, endpoint }: HealthCheck,
+    HealthCheck {
+        interval,
+        endpoint,
+        max_failures,
+    }: HealthCheck,
     servers: Vec<Server>,
     http_client: Client<HttpConnector, Body>,
 ) -> Result<(), String> {
     let interval = Duration::from_secs(interval);
+    let max_failures = max_failures.unwrap_or(1);
+
+    let mut failures = 1;
 
     loop {
         let mut health_checks = FuturesUnordered::new();
@@ -37,7 +44,15 @@ pub async fn run_health_check(
         }
 
         while let Some(result) = health_checks.next().await {
-            result?
+            if let Err(e) = result {
+                if failures == max_failures {
+                    return Err(format!(
+                        "Max failures reached ({}).\nLast error: '{}'\nShutting down the application.",
+                        max_failures, e
+                    ));
+                }
+                failures += 1;
+            }
         }
 
         sleep(interval).await;

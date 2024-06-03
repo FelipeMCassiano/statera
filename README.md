@@ -9,7 +9,6 @@
 - **Round-Robin Algorithm**: Fair and equal distribution of traffic to prevent server overload.
 - **TOML Configuration**: Easy-to-use and human-readable configuration files 📄.
 - **High Performance**: Built with Rust for safety and speed 🚀.
-- **Scalability**: Effortlessly scales with your growing traffic needs 📈.
 
 ## ⚙️ Configuration
 ⚠️ The statera configuration file name is strictly determined to `statera.toml`.

@@ -10,9 +10,9 @@ use axum::{
     extract::{Request, State},
     http::{
         uri::{Authority, Scheme},
-        StatusCode, Uri,
+        Response, StatusCode, Uri,
     },
-    response::{IntoResponse, Response},
+    response::IntoResponse,
 };
 use reqwest::Client;
 #[derive(Clone)]
@@ -44,13 +44,10 @@ pub async fn balancer(
     let req = http_client
         .request(req.method().clone(), req.uri().to_string())
         .build()
-        .expect("VALID URL");
+        .expect("INVALID URL");
 
     match http_client.execute(req).await {
-        Ok(res) => Ok({
-            let axum_res: Response<reqwest::Body> = res.into();
-            axum_res
-        }),
+        Ok(res) => Ok(Response::from(res)),
         Err(_) => Err(StatusCode::BAD_GATEWAY),
     }
 }

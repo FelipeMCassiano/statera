@@ -12,7 +12,7 @@ async fn health_check(server: &Server, endpoint: &str, http_client: &Client) -> 
         .parse()
         .map_err(|_| format!("Invalid URL for server: {}", server.name))?;
 
-    let req = http_client.get(uri).build().expect("VALID URL");
+    let req = http_client.get(uri).build().expect("INVALID URL");
 
     match http_client.execute(req).await {
         Ok(_) => Ok(()),

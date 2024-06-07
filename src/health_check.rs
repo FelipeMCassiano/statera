@@ -1,23 +1,20 @@
 use core::str;
 
-use axum::body::Body;
 use futures::{stream::FuturesUnordered, StreamExt};
-use hyper_util::client::legacy::{connect::HttpConnector, Client};
+use reqwest::Client;
 use tokio::time::{sleep, Duration};
 
 use crate::configs::{HealthCheck, Server};
 
-async fn health_check(
-    server: &Server,
-    endpoint: &str,
-    http_client: &Client<HttpConnector, Body>,
-) -> Result<(), String> {
+async fn health_check(server: &Server, endpoint: &str, http_client: &Client) -> Result<(), String> {
     let url = format!("http://{}:{}{}", server.host, server.port, endpoint);
-    let uri = url
+    let uri: String = url
         .parse()
         .map_err(|_| format!("Invalid URL for server: {}", server.name))?;
 
-    match http_client.get(uri).await {
+    let req = http_client.get(uri).build().expect("VALID URL");
+
+    match http_client.execute(req).await {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("Server: {} is unhealthy", server.name)),
     }
@@ -30,7 +27,7 @@ pub async fn run_health_check(
         max_failures,
     }: HealthCheck,
     servers: Vec<Server>,
-    http_client: Client<HttpConnector, Body>,
+    http_client: Client,
 ) -> Result<(), String> {
     let interval = Duration::from_secs(interval);
     let max_failures = max_failures.unwrap_or(1);

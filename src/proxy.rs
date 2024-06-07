@@ -7,21 +7,19 @@ use std::{
 };
 
 use axum::{
-    body::Body,
     extract::{Request, State},
     http::{
         uri::{Authority, Scheme},
         StatusCode, Uri,
     },
-    response::IntoResponse,
+    response::{IntoResponse, Response},
 };
-use hyper_util::client::legacy::{connect::HttpConnector, Client};
-
+use reqwest::Client;
 #[derive(Clone)]
 pub struct AppState {
     pub addrs: Vec<String>,
     pub req_counter: Arc<AtomicUsize>,
-    pub http_client: Client<HttpConnector, Body>,
+    pub http_client: Client,
 }
 
 pub async fn balancer(
@@ -43,8 +41,16 @@ pub async fn balancer(
         Uri::from_parts(parts).unwrap()
     };
 
-    match http_client.request(req).await {
-        Ok(res) => Ok(res),
+    let req = http_client
+        .request(req.method().clone(), req.uri().to_string())
+        .build()
+        .expect("VALID URL");
+
+    match http_client.execute(req).await {
+        Ok(res) => Ok({
+            let axum_res: Response<reqwest::Body> = res.into();
+            axum_res
+        }),
         Err(_) => Err(StatusCode::BAD_GATEWAY),
     }
 }

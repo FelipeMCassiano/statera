@@ -2,13 +2,11 @@ pub(crate) mod configs;
 mod health_check;
 mod proxy;
 
-use axum::body::Body;
 use axum::handler::Handler;
 use configs::load_config;
 use core::sync::atomic::AtomicUsize;
-use hyper_util::client::legacy::Client;
-use hyper_util::rt::TokioExecutor;
 use proxy::{balancer, AppState};
+use reqwest::Client;
 use std::sync::Arc;
 
 #[tokio::main]
@@ -24,7 +22,7 @@ async fn main() {
 
     let listener = tokio::net::TcpListener::bind(&port).await.unwrap();
 
-    let client = Client::builder(TokioExecutor::new()).build_http::<Body>();
+    let client = Client::new();
 
     let app_state = AppState {
         addrs: servers_ports,

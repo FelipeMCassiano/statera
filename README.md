@@ -47,7 +47,7 @@ services:
   statera:
     image: felipecassiano/statera:latest
     volumes:
-      - your-path-to-statera.toml:/usr/local/bin/statera.toml
+      - your-path-to-statera.toml/statera.toml:/usr/local/bin/statera.toml
     ports:
       - "9999:9999" # This is an example port mapping
 ...

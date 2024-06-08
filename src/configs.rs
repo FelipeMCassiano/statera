@@ -7,6 +7,7 @@ pub struct Config {
     pub port: String,
     pub health_check: Option<HealthCheck>,
     pub servers: Vec<Server>,
+    pub ssl: Ssl,
 }
 
 #[derive(Deserialize)]
@@ -16,11 +17,17 @@ pub struct Server {
     pub port: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct HealthCheck {
     pub interval: u64,
     pub endpoint: String,
     pub max_failures: Option<u16>,
+}
+
+#[derive(Deserialize)]
+pub struct Ssl {
+    pub certificate: String,
+    pub key: String,
 }
 
 pub async fn load_config() -> Config {

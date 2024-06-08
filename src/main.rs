@@ -3,6 +3,7 @@ mod health_check;
 mod proxy;
 
 use axum::handler::Handler;
+use axum_server::tls_rustls::RustlsConfig;
 use configs::load_config;
 use core::sync::atomic::AtomicUsize;
 use proxy::{balancer, AppState};
@@ -15,10 +16,11 @@ async fn main() {
 
     let port = format!("0.0.0.0:{}", configs.port);
 
-    let mut servers_ports: Vec<String> = Vec::new();
-    for servers in &configs.servers {
-        servers_ports.push(format!("{}:{}", servers.host, servers.port));
-    }
+    let servers_ports = configs
+        .servers
+        .iter()
+        .map(|s| format!("{}:{}", s.host, s.port))
+        .collect();
 
     let listener = tokio::net::TcpListener::bind(&port).await.unwrap();
 
@@ -40,5 +42,25 @@ async fn main() {
         }
     }
 
-    axum::serve(listener, app).await.unwrap();
+    let ssl_config = match configs.ssl {
+        Some(ssl) => Some(
+            RustlsConfig::from_pem_file(ssl.certificate, ssl.key)
+                .await
+                .unwrap(),
+        ),
+        None => None,
+    };
+
+    match ssl_config {
+        Some(ssl) => {
+            axum_server::from_tcp_rustls(listener.into_std().expect("INVALID TCP ADDRESS"), ssl)
+                .serve(app.into_make_service())
+                .await
+                .unwrap()
+        }
+        None => axum_server::from_tcp(listener.into_std().expect("INVALID TCP ADDRESS"))
+            .serve(app.into_make_service())
+            .await
+            .unwrap(),
+    };
 }

@@ -7,7 +7,7 @@ pub struct Config {
     pub port: String,
     pub health_check: Option<HealthCheck>,
     pub servers: Vec<Server>,
-    pub ssl: Ssl,
+    pub ssl: Option<Ssl>,
 }
 
 #[derive(Deserialize)]

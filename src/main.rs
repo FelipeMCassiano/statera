@@ -4,11 +4,11 @@ mod proxy;
 
 use axum::handler::Handler;
 use axum_server::tls_rustls::RustlsConfig;
-use configs::load_config;
+use configs::{find_files_paths, load_config};
 use core::sync::atomic::AtomicUsize;
 use proxy::{balancer, AppState};
 use reqwest::Client;
-use std::sync::Arc;
+use std::{path::PathBuf, str::FromStr, sync::Arc};
 
 #[tokio::main]
 async fn main() {
@@ -43,11 +43,27 @@ async fn main() {
     }
 
     let ssl_config = match configs.ssl {
-        Some(ssl) => Some(
-            RustlsConfig::from_pem_file(ssl.certificate, ssl.key)
-                .await
-                .unwrap(),
-        ),
+        Some(ssl) => {
+            let Some(cert_path) = find_files_paths(
+                &PathBuf::from_str(".").expect("invalid path"),
+                ssl.certificate,
+            )else{
+                todo!()
+            };
+            let Some(key_path) = find_files_paths(
+                &PathBuf::from_str(".").expect("invalid path"),
+                ssl.key
+            )else{
+                todo!()
+            };
+
+            Some(
+                RustlsConfig::from_pem_file(cert_path, key_path)
+                    .await
+                    .unwrap(),
+            )
+        }
+
         None => None,
     };
 

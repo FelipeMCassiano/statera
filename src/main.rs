@@ -1,44 +1,12 @@
+use crate::server::start_server;
+
 pub(crate) mod configs;
 mod health_check;
 mod proxy;
-
-use axum::handler::Handler;
-use configs::load_config;
-use core::sync::atomic::AtomicUsize;
-use proxy::{balancer, AppState};
-use reqwest::Client;
-use std::sync::Arc;
+mod server;
+mod ssl;
 
 #[tokio::main]
 async fn main() {
-    let configs = load_config().await;
-
-    let port = format!("0.0.0.0:{}", configs.port);
-
-    let mut servers_ports: Vec<String> = Vec::new();
-    for servers in &configs.servers {
-        servers_ports.push(format!("{}:{}", servers.host, servers.port));
-    }
-
-    let listener = tokio::net::TcpListener::bind(&port).await.unwrap();
-
-    let client = Client::new();
-
-    let app_state = AppState {
-        addrs: servers_ports,
-        req_counter: Arc::new(AtomicUsize::new(0)),
-        http_client: client.clone(),
-    };
-
-    let app = balancer.with_state(app_state);
-
-    if let Some(health_check) = configs.health_check {
-        if let Err(e) = health_check::run_health_check(health_check, configs.servers, client).await
-        {
-            eprintln!("{}", e);
-            return;
-        }
-    }
-
-    axum::serve(listener, app).await.unwrap();
+    start_server().await
 }

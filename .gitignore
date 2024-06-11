@@ -4,3 +4,6 @@ docker-compose.yml
 statera.toml
 init.sql
 postgresql.conf
+certificate.pem
+key.pem
+certificate.csr

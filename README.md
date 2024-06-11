@@ -34,7 +34,12 @@ port = "8081"
 [health_check]
 interval = 10 # Interval for health check (in seconds)
 endpoint = "/health"
-max_failures = 2 
+max_failures = 2
+
+# Ssl/tls statera settings (Optional)
+[ssl]
+certificate = "certificate-file.pem" # needs to be .pem
+key = "key-file.pem" # needs to be .pem
 
 ```
 
@@ -48,6 +53,8 @@ services:
     image: felipecassiano/statera:latest
     volumes:
       - your-path-to-statera.toml/statera.toml:/usr/local/bin/statera.toml
+      - your-path-to-ssl-key.pem:/usr/local/bin/key-file.pem
+      - your-path-to-ssl-certificate.pem://usr/local/bin/certificate-file.pem
     ports:
       - "9999:9999" # This is an example port mapping
 ...

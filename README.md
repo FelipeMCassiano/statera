@@ -17,7 +17,7 @@ Below is the structure of the configuration file you’ll need to set up:
 
 ```toml
 # Defines the Statera port
-port = 9999
+port = "9999"
 
 # Server configurations
 [[servers]]
